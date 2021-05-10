@@ -673,6 +673,10 @@ def find_contains(li, keyword, ignore_case = False):
 
 ##############################################################################
 
+# For the function below, example usage is shown in the Colab Notebook: https://colab.research.google.com/drive/1P6pKdGkz1IQzHR-wzvoFaCZ4H1z-VoTL
+
+# These functions will be improved and annotated in the future.
+
 def report_proportion_of_missing_data(data, columns=False):
     """
     Return the proportion of missing data in different columns
