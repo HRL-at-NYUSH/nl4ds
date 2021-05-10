@@ -32,6 +32,8 @@ def load_census(which_year, fields = None, version_code = 'data_2021_may'):
     print('Unfortunately, census records for NYC in 1890 are not available because a fire destroyed the collection. Try other years between 1850 and 1940.')
     return None
   filepath = '/content/drive/My Drive/'+version_code+'/census_' + str(which_year) + '.csv'
+  print('\nLoading data for census year '+str(which_year)+'...')
+
   try:
     if fields is not None:
         data = pd.read_csv(filepath, nrows = 0)
@@ -46,7 +48,7 @@ def load_census(which_year, fields = None, version_code = 'data_2021_may'):
     else:
         data = pd.read_csv(filepath)
 
-    print('\nLoading data for census year '+str(which_year))
+
     print('\nThere are '+str(len(data))+' entries.\n')
     print('Available columns:\n\n')
     print_list(data.columns.tolist())
