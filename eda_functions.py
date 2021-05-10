@@ -24,21 +24,34 @@ default_dpi = 90
 
 # -------------------------------------Data Selection----------------------------------------------
 
-def load_census(which_year, version_code = 'data_2021_may'):
+def load_census(which_year, fields = None, version_code = 'data_2021_may'):
   '''Provide the census year you will to load (choose from any year between 1850 - 1940, except for 1890)'''
   if str(which_year) == '1890':
     print('Unfortunately, census records for NYC in 1890 are not available because a fire destroyed the collection. Try other years between 1850 and 1940.')
     return None
-
+  print('\nLoading data for census year '+str(which_year))
+  filepath = '/content/drive/My Drive/'+version_code+'/census_' + str(which_year) + '.csv'
   try:
-    df = pd.read_csv('/content/drive/My Drive/'+version_code+'/census_' + str(which_year) + '.csv')
+    if fields is not None:
+        data = pd.read_csv(filepath, nrows = 0)
+        available_fields = data.columns.tolist()
+        valid_fields = []
+        for field in fields:
+            if field not in available_fields:
+                print(field+' is not in this dataset.')
+            else:
+                valid_fields.append(field)
+        data = pd.read_csv(filepath, usecols = valid_fields)
+    else:
+        data = pd.read_csv(filepath)
+
     from IPython.display import clear_output
     clear_output()
-    print('\nThere are '+str(len(df))+' entries.\n')
+    print('\nThere are '+str(len(data))+' entries.\n')
     print('Available columns:\n\n')
-    print_list(df.columns.tolist())
+    print_list(data.columns.tolist())
     print('\n\n')
-    return df
+    return data
 
   except FileNotFoundError as e:
     print('File Not Found! Please contact Tim at gw923@nyu.edu for acccess to certain datasets.')
