@@ -1,10 +1,12 @@
 # ------------------------------------Import Libraries----------------------------------------
 
 import os
-import glob
-import re
+from glob import glob
+import inspect
 import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
+# warnings.simplefilter(action='ignore', category=FutureWarning)
+
+import re
 
 import pandas as pd
 import numpy as np
@@ -390,10 +392,17 @@ def show_corr(cols, data):
 #   print(res.summary())
 
 
-# -------------------- utilities ----------------------
+# -------------------- Analytics utilities ----------------------
 
 def proportion(small_data, big_data, rounding = 3):
   return round(len(small_data)/len(big_data), rounding)
+
+# -------------------- Programming utilities ----------------------
+
+def flatten_list(l):
+    return [item for sublist in l for item in sublist]
+
+# -------------------- I/O utilities ----------------------
 
 def print_list(list_to_print, indent=0, line_width=90):
   line_length = 0
@@ -439,3 +448,373 @@ def save_graph(filename = '', quality = 'HD', padding = 0.3, transparent = False
 
   plt.savefig('./saved_graphs/'+filename, dpi=dpi, bbox_inches='tight', transparent=transparent, pad_inches=padding)
 
+
+# -------------------- Uncategorized utilities ----------------------
+
+##############################################################################
+
+def split_and_strip(string, sep=',', strip_char=' '):
+    """
+    Split a string and strip the space around each part
+    """
+    return [part.strip(strip_char) for part in string.split(sep)]
+
+
+def split_and_pad(string, sep=',', pad=1):
+    """
+    Split a string and pad some space around each part
+    """
+    return [' ' * pad + part + ' ' * pad for part in split_and_strip(string, sep)]
+
+
+def get_local_variables(filter_=True):
+    """
+    # Reference https://stackoverflow.com/a/18425523
+    Gets the name and definition of the local variables.
+    :param: filter_ (Boolean): whether or not the variables starting with "_" need to be filtered out
+    :return: dic
+    """
+    callers_local_vars = dict(inspect.currentframe().f_back.f_locals.items())
+    if filter_:
+        var_keys = list(callers_local_vars.keys())
+        for key in var_keys:
+            if key.startswith('_'):
+                del callers_local_vars[key]
+    return callers_local_vars
+
+
+def retrieve_name(var):
+    """
+    # Reference https://stackoverflow.com/a/40536047
+    Gets the name of the variable
+    :param: var: variable to get name from
+    :return: string
+    """
+    for fi in reversed(inspect.stack()):
+        names = [var_name for var_name, var_val in fi.frame.f_locals.items() if var_val is var]
+        if len(names) > 0:
+            return names[0]
+
+def list_or_make_list(li):
+
+    li_name = retrieve_name(li)
+
+    if isinstance(li, list):  # Check if the columns parameter is List
+        return li
+    elif isinstance(li, str):  # If not, make the single column a list
+        return [li]
+    else:
+        print('[Error] The "'+li_name+'" variable you provided is of wrong data type.')
+        raise
+
+def validate_columns(data, columns, suppress_warning = False):
+    """
+    [Need update] Validate if the columns provided exist in the data
+    :param: data (Boolean), columns (List or String)
+    :return: None
+    """
+
+    columns = list_or_make_list(columns)
+
+    # Convert the list of columns we want to operate on and the list of columns in the data into sets
+    columns = set(columns)
+    valid_columns = set(data.columns.tolist())
+
+    # Compare the difference and get the list of columns that we want to operate on but do not exist in the data
+    non_covered_columns = sorted(list(columns.difference(valid_columns)))
+
+    # If this list is not empty, report an error
+    if len(non_covered_columns) > 0:
+        if not suppress_warning:
+            print('[Error] The following columns that you provided are not in the data:\n' + ', '.join(non_covered_columns))
+    # In the future, there should be some fuzzy matching or inference techniques to suggest the correct column name
+    # For now, just return False
+        return False
+    else:
+        return True
+
+
+def drop_duplicates(data, columns=False, keep='first'):
+    """
+    Repackage of the pandas.drop_duplicates function
+    :param: data (Boolean), columns (List), keep (String)
+    :return: None
+    """
+
+    # Validate columns are valid
+    if validate_columns(data, columns):
+
+        # Choose commands depending on whether subset is provided
+        if columns == False:
+            data.drop_duplicates(keep=keep, inplace=True)
+        else:
+            data.drop_duplicates(subset=columns, keep=keep, inplace=True)
+
+
+def drop_missing(data, columns=False, dimension='column'):
+    """
+    Repackage of the pandas.dropna function
+    :param: data (Boolean), columns (List), dimension (String)
+    :return: None
+    """
+
+    # Validate columns are valid
+    if validate_columns(data, columns):
+
+        # Convert dimension to axis
+        axis = 1 if dimension.lower() == 'column' else 0 if 'row' else -1
+        if axis == -1:
+            print('[Error] The dimension provided is invalid, choose from "column" and "row".')
+            raise
+
+        # Choose commands depending on whether subset is provided
+        if columns == False:
+            data.dropna(axis=axis, inplace=True)
+        else:
+            data.drop_duplicates(subset=columns, axis=axis, inplace=True)
+
+
+def drop_columns(data, columns):
+    """
+    Repackage of the pandas.drop function
+    :param: data (Boolean), columns (List or String)
+    :return: None
+    """
+
+    # Validate the columns
+    if validate_columns(data, columns):
+
+        # Drop the columns inplace
+        data.dropna(columns, axis=1, inplace=True)
+
+
+def check_duplicated_column_names(data):
+    """
+    Check and print out potentially duplicated column names
+    :param: data (DataFrame)
+    :return: None
+    """
+
+    # Store the data name
+    data_name = retrieve_name(data)
+
+    # Use regex to find col_names that ends with .1 or .n
+    col_names = data.columns.tolist()
+    potential_duplicated_col_names = [col for col in col_names if len(re.findall(r'.\d+$', col)) > 0 and re.sub(r'.\d+$', '', col) in col_names]
+
+    # Print out potential duplicated col_names and suggest commands to change them
+    for col in potential_duplicated_col_names:
+        print('[Warning] The column named "' + col + '" may have the same name with the column "' + re.sub(r'.\d+$', '', col) + '". Please change it based on your understanding of the data source.\n\nTry this command:\nchange_column_name(' + data_name + ',"' + col + ' -> NEW_NAME")')
+
+    # If the list is not empty, the check fails
+    if len(potential_duplicated_col_names)>0:
+        return False
+    else:
+        return True
+
+def change_column_name(data, change_from, change_to=''):
+    """
+    Change a single column's name inplace
+    :param: data (DataFrame), change_from (String), change_to (String)
+    :return: None
+    """
+
+    # If change_to is still its default value, then information might be contained in change_from only, try use '->' to split
+    if change_to == '':
+        change_from, change_to = split_and_strip(change_from, sep='->')
+
+    # validate old column name exists and new name doesn't exist
+    if validate_columns(data, change_from):
+        if not validate_columns(data, change_to, suppress_warning = True):
+            data.rename(columns={change_from: change_to}, inplace=True)
+            if check_operation_keyword_column_names(data):
+                print('[Success] Column name changed: ' + change_from + ' -> ' + change_to)
+        else:
+            print('[Error] The column name ' + change_to + ' already exists in the data.')
+    else:
+        pass
+
+
+
+def check_operation_keyword_column_names(data, operation_keywords = ['duplicate','drop','keep']):
+    """
+    Check and print out column names that are operation keywords in this program
+    :param: data (DataFrame)
+    :return: None
+    """
+
+    # Store the data name
+    data_name = retrieve_name(data)
+
+    # Get the intersection between the operation keywords and column names in the data
+    operation_keyword_column_names = sorted(list(set(operation_keywords).intersection(set(data.columns.tolist()))))
+
+    # Print out operation_keyword_column_names and suggest commands to change them
+    for col in operation_keyword_column_names:
+        print('[Warning] The column name "' + col + '" is an operation keyword. Please change it to another column name.\n\nTry this command:\nchange_column_name(' + data_name + ',"' + col + ' -> NEW_NAME")')
+
+    # If the list is not empty, the check fails
+    if len(operation_keyword_column_names)>0:
+        return False
+    else:
+        return True
+
+
+def find_contains(li, keyword, ignore_case = False):
+    """
+    Return a list of the elements in the original list that contains the keyword
+    :param: li (List)
+    :return: List
+    """
+    if ignore_case:
+        return [element for element in li if keyword.lower() in element.lower()]
+    return [element for element in li if keyword in element]
+
+
+##############################################################################
+
+def report_proportion_of_missing_data(data, columns=False):
+    """
+    Return the proportion of missing data in different columns
+    :param: data (DataFrame), columns (List)
+    :return: pd.Series
+    """
+    if not columns:
+        null_rate = data.isnull().mean()
+    else:
+        columns = list_or_make_list(columns)
+        null_rate = data[columns].isnull().mean()
+    return null_rate.sort_values(ascending=False)
+
+def report_proportion_of_available_data(data, columns=False):
+    """
+    Print the proportion of available data in different columns
+    :param: data (DataFrame), columns (List)
+    :return: pd.Series
+    """
+    if not columns:
+        non_null_rate = data.notnull().mean()
+    else:
+        columns = list_or_make_list(columns)
+        non_null_rate = data[columns].notnull().mean()
+    print('\nAvailability for fields:\n')
+    print(non_null_rate.sort_values(ascending=False))
+
+def report_data_type_in_dataframe(data):
+    """
+    Print the data types of the different columns
+    :param: data (DataFrame)
+    :return: pd.Series
+    """
+    print('\nData types of fields:\n')
+    print(data.dtypes)
+
+def profile_data_and_drop_duplicates(data):
+    print('\n\n\nData Profile')
+    data.drop_duplicates(subset=['RecordId'], keep='last', inplace=True)
+    data.reset_index(drop=True, inplace=True)
+    assert(data['RecordId'].dtype == 'int64')
+    assert(data['HouseHoldId'].dtype == 'int64')
+    print('\n==========================================================')
+    data.info()
+    print('\n==========================================================')
+    report_proportion_of_available_data(data)
+    print()
+    report_data_type_in_dataframe(data)
+    print()
+    for col in data.columns.tolist():
+        print('==========================================================')
+        print(col)
+        print()
+        print(data[col].value_counts())
+        print()
+
+def is_numeric(x):
+    return isinstance(x, (int, np.integer)) or isinstance(x, (float, np.floating)) or (isinstance(x,str) and x.replace('.','').replace(',','').replace(' ','').replace('/','').isnumeric())
+
+def numeric_percentage(data, col):
+    return data[col].dropna().apply(is_numeric).mean()
+
+def check_numeric_percentage(data, after_column = None , check_all_after = False, ignore_columns = ['DataId', 'RecordId', 'HouseHoldId', 'NameId', 'Street Name', 'Street', 'House Number', 'Dwelling Number', 'Family Number', 'Line Number']):
+  start_checking = False if after_column is not None else True
+  potential_error_count = 0
+  for col in data.columns:
+
+      if col == after_column:
+          start_checking = True
+          continue
+
+      if start_checking and col not in ignore_columns:
+
+          col_numeric_percentage = numeric_percentage(data, col)
+          if col_numeric_percentage > 0.9 and col_numeric_percentage < 1:
+              print('"'+col+'"','has',str(round(100*(1-col_numeric_percentage),1))+'%','"non-numeric" values.\n')
+              potential_error_count += 1
+          if col_numeric_percentage > 0 and col_numeric_percentage < 0.1:
+              print('"'+col+'"','has',str(round(100*(col_numeric_percentage-0),1))+'%','"numeric" values.\n')
+              potential_error_count += 1
+
+      if not check_all_after and potential_error_count == 1:
+          print('[Pause] Stop checking for now.')
+          break
+
+def get_indices(boolean_series):
+  return boolean_series[boolean_series].index.tolist()
+
+def top_non_numeric_values(data, col, top_k = 10, show_all = False, return_indices = True):
+    boolean_series = (~data[col].apply(is_numeric)) & (data[col].notnull())
+    top_non_numeric_values = data.loc[boolean_series, col].value_counts()
+    if show_all:
+        print( top_non_numeric_values )
+    else:
+        total_rows = len(top_non_numeric_values)
+        if top_k < total_rows:
+            print('There are '+str(total_rows)+' rows. Use show_all = True to see full results.\n')
+        print( top_non_numeric_values[:top_k] )
+    if return_indices:
+        return get_indices(boolean_series)
+
+def top_numeric_values(data, col, top_k = 10, show_all = False, return_indices = True):
+    boolean_series = (data[col].apply(is_numeric)) & (data[col].notnull())
+    top_numeric_values = data.loc[boolean_series, col].value_counts()
+    if show_all:
+        print( top_numeric_values )
+    else:
+        total_rows = len(top_numeric_values)
+        if top_k < total_rows:
+            print('There are '+str(total_rows)+' rows. Use show_all = True to see full results.\n')
+        print( top_numeric_values[:top_k] )
+    if return_indices:
+        return get_indices(boolean_series)
+
+def show_df_at_indices(data, indices):
+  return data[data.index.isin(indices)].copy()
+
+def shift_patch_of_dataframe(data, indices, origin_col, shift, width = None, check_again = True):
+
+    fields = data.columns.tolist()
+    index_of_origin_col = fields.index(origin_col)
+    if shift>=0:
+        from_cols = fields[index_of_origin_col:len(fields) - shift]
+        to_cols = fields[index_of_origin_col + shift:len(fields)]
+    else:
+        from_cols = fields[index_of_origin_col:len(fields)]
+        to_cols = fields[index_of_origin_col + shift:len(fields) + shift]
+    if width is not None:
+        from_cols, to_cols = from_cols[:width], to_cols[:width]
+
+    data.loc[indices, to_cols] = data.loc[indices, from_cols].to_numpy()
+
+    data.loc[indices, origin_col] = np.nan
+
+    print('\n[Success] Patch shifted.\n')
+
+    if check_again:
+        print('Re-running "check_numeric_percentage".\n')
+        check_numeric_percentage(data, after_column = origin_col)
+
+def drop_indices(data, indices):
+
+    data.drop(indices, axis = 0, inplace = True)
+
+    print('\n[Success] Rows dropped.\n')
