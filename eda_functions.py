@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-plt.style.use('ggplot')
+plt.style.use('seaborn')
 
 # import statsmodels.api as sm
 # import patsy
