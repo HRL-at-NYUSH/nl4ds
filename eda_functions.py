@@ -330,6 +330,7 @@ def describe(col, data, top_k=-1, thres=90, return_full=False, plot_top_k=-1, pl
 
       fig, ax = plt.subplots(figsize=(9, 6), dpi=default_dpi, subplot_kw=dict(aspect="equal"))
 
+      graph_df = graph_df.sort_values() # lock the order of values so color coding is consistent across multiple pie chart of the same subject
       values = graph_df.values.tolist()
       names = graph_df.index.tolist()
 
