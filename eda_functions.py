@@ -276,6 +276,8 @@ def filter_and_change_values(data, orig_col, contain = '', not_contain = '', cha
 
 def describe(col, data, top_k=-1, thres=90, return_full=False, plot_top_k=-1, plot_type='', bins=-1, show_graph = True, year = None):
 
+  year_info = (" - Year "+str(year)) if year is not None else ""
+
   if data[col].isnull().mean() > 0:
     print(f"Notice: {np.round(data[col].isnull().mean()*100,3)}% of the entries have no records for this field.\n")
 
@@ -287,7 +289,7 @@ def describe(col, data, top_k=-1, thres=90, return_full=False, plot_top_k=-1, pl
       bins = 50
     plt.figure(figsize=(9, 6), dpi=default_dpi)
     plt.hist(data[col].dropna(), bins=bins)
-    plt.title(f"Distribution of the {col}")
+    plt.title(f"Distribution of the {col}" + year_info)
     basic_stats = data[col].dropna().describe().reset_index()
     basic_stats.columns = ['Field', 'Value']
     basic_stats.Field = ['Total Count', 'Mean', 'Standard Deviation', 'Minimum', 'Value at 25% Percentile', 'Median (50% Percentile)', 'Value at 75% Percentile', 'Maximum']
@@ -350,12 +352,12 @@ def describe(col, data, top_k=-1, thres=90, return_full=False, plot_top_k=-1, pl
 
       plt.setp(autotexts, size=12, weight="bold")
 
-      ax.set_title(f"Relative Proportion of Top {len(graph_df)} {col}" if len(graph_df) < len(full_value_counts_df) else f"Proportion of {col}" + ((" - Year "+str(year)) if year is not None else ""))
+      ax.set_title(f"Relative Proportion of Top {len(graph_df)} {col}" if len(graph_df) < len(full_value_counts_df) else f"Proportion of {col}" + year_info)
 
     if plot_type == 'bar':
       plt.figure(figsize=(9, 6), dpi=default_dpi)
       graph_df.plot(kind='bar')
-      plt.title(f"Barplot of the Top {len(graph_df)} {col} - (y axis shows percentage)"+ ((" - Year "+str(year)) if year is not None else ""))
+      plt.title(f"Barplot of the Top {len(graph_df)} {col} - (y axis shows percentage)"+ year_info)
 
     print()
 
