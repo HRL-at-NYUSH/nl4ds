@@ -23,7 +23,7 @@ pd.set_option('display.max_columns', 100)
 pd.set_option('display.max_rows', 100)
 
 global default_dpi
-default_dpi = 90
+default_dpi = 120
 
 
 # -------------------------------------Data Selection----------------------------------------------
