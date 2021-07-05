@@ -460,6 +460,13 @@ def save_graph(filename = '', quality = 'HD', padding = 0.3, transparent = False
 
 ##############################################################################
 
+def check_non_numeric_value_in_column(data, col_name):
+    """
+    Return the set of non-numeric values in the column of the data
+    """
+    return set([n for n in data[col_name].tolist() if isinstance(n, str) and not n.isnumeric()])
+
+
 def split_and_strip(string, sep=',', strip_char=' '):
     """
     Split a string and strip the space around each part
