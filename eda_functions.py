@@ -835,4 +835,4 @@ def drop_indices(data, indices):
 
     data.drop(indices, axis = 0, inplace = True)
 
-    print('\n[Success] Rows dropped.\n')
+    print('\n[Success] '+str(sum(indices))+' rows dropped.\n')
