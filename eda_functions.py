@@ -836,3 +836,13 @@ def drop_indices(data, indices):
     data.drop(indices, axis = 0, inplace = True)
 
     print('\n[Success] '+str(len(indices))+' rows dropped.\n')
+
+def keep_only_common(data, field, common_values, placeholder = 'MISSING'): # if MISSING is a meaningful value for this field, modifier the placeholder value
+    common_values = set(list(common_values))
+    if placeholder not in common_values:
+        common_values.add(placeholder)
+    data[field] = data[field].copy().fillna(placeholder).apply(lambda x: x if x in common_values else np.nan).dropna().replace(placeholder, np.nan)
+    print('The common values in column "'+field+'" are kept.')
+
+def get_indices_of_not_belonged(data, field, value_list):
+    return data.index[~data[field].isin(value_list+[np.nan])].tolist()
