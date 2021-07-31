@@ -8,6 +8,7 @@ import warnings
 # warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import re
+from collections import Counter
 
 import pandas as pd
 import numpy as np
@@ -846,3 +847,19 @@ def keep_only_common(data, field, common_values, placeholder = 'MISSING'): # if 
 
 def get_indices_of_not_belonged(data, field, value_list):
     return data.index[~data[field].isin(value_list+[np.nan])].tolist()
+
+def try_length_is_zero(x):
+  try:
+    if isinstance(x,int):
+      return False
+    return len(x)==0
+  except:
+    return True
+
+def create_mapping_from_df(dataframe, key, value, drop_nan_value = True, drop_empty_value = True):
+  temp_df = dataframe[[key,value]].copy()
+  if drop_empty_value:
+    temp_df[value] = temp_df[value].apply(lambda x: np.nan if try_length_is_zero(x) else x)
+  if drop_nan_value:
+    temp_df = temp_df.dropna()
+  return temp_df.set_index(key)[value].to_dict()
