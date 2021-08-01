@@ -868,7 +868,7 @@ def create_mapping_from_df(dataframe, key, value, drop_nan_value = True, drop_em
   return temp_df.set_index(key)[value].to_dict()
 
 
-def time_now(timezone=None,detail_level='m',hyphen=True):
+def time_now(timezone=None,detail_level='m',hyphen=False):
   if timezone == None:
     timezone_flag = pytz.utc
     timezone_marker = 'UTC'
