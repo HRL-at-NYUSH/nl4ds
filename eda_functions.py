@@ -16,6 +16,9 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 plt.style.use('seaborn')
 
+import pytz
+from datetime import datetime
+
 # import statsmodels.api as sm
 # import patsy
 # import sklearn
@@ -863,3 +866,39 @@ def create_mapping_from_df(dataframe, key, value, drop_nan_value = True, drop_em
   if drop_nan_value:
     temp_df = temp_df.dropna()
   return temp_df.set_index(key)[value].to_dict()
+
+
+def time_now(timezone=None,detail_level='m',hyphen=True):
+  if timezone == None:
+    timezone_flag = pytz.utc
+    timezone_marker = 'UTC'
+  elif timezone.lower() in ['china','shanghai','beijing']:
+    timezone_flag = pytz.timezone('Asia/Shanghai')
+    timezone_marker = 'china'
+  elif timezone.lower() in ['est','edt','us eastern','eastern','new york','newyork','ny','nyc']:
+    timezone_flag = pytz.timezone('US/Eastern')
+    timezone_marker = 'useastern'
+  elif timezone.lower() in ['cst','cdt','us central','central']:
+    timezone_flag = pytz.timezone('US/Central')
+    timezone_marker = 'uscentral'
+  elif timezone.lower() in ['pst','pdt','us pacific','pacific']:
+    timezone_flag = pytz.timezone('US/Pacific')
+    timezone_marker = 'uspacific'
+
+  raw_time_string = str(datetime.now(timezone_flag))
+
+  if detail_level.lower()[0] == 'd':
+    output = raw_time_string.split(' ')[0]
+  elif detail_level.lower()[0] == 'h':
+    output = '-'.join(raw_time_string.split(':')[:1])
+  elif detail_level.lower()[0] == 'm':
+    output = '-'.join(raw_time_string.split(':')[:2])
+  elif detail_level.lower()[0] == 's':
+    output = '-'.join(raw_time_string.split(':')[:3])
+
+  output = output.replace(' ','_')+'_'+timezone_marker
+
+  if not hyphen:
+    output = output.replace('-','')
+
+  return output
