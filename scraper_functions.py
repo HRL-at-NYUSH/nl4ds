@@ -1171,3 +1171,17 @@ def scroll_to_bottom(driver, scroll_pause_time = 1):
         if new_height == last_height:
             break
         last_height = new_height
+
+##################################################################################################
+
+def get_tables_with_links():
+  tables = pd.read_html(get_page_source(driver))
+  link_groups = [[[a['href'] for a in tr.findAll('a') if a.has_attr('href')] for tr in table_body.findAll('tr')] for table_body in get_soup(get_page_source(driver)).findAll('tbody')]
+  assert(len(tables)==len(link_groups))
+  tables_with_links = []
+  for i in range(len(tables)):
+    table = tables[i]
+    table['Links'] = link_groups[i]
+    tables_with_links.append(table)
+  return tables_with_links
+
