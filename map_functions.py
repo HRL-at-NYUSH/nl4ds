@@ -1,5 +1,4 @@
 from IPython.display import clear_output
-clear_output()
 
 import pandas as pd
 import numpy as np
@@ -12,21 +11,30 @@ from glob import glob
 
 import re
 from collections import Counter
-def flatten_list(l):
-    return [item for sublist in l for item in sublist]
 
 import cv2
 from google.colab.patches import cv2_imshow
-print('OpenCV Version:',cv2.__version__)
 
 os.system('pip install rasterio')
+os.system('pip install iteround')
+
 import rasterio
 from rasterio.plot import reshape_as_image
 
+from iteround import saferound
+
 import colorsys
+
+import plotly.graph_objs as go
+import seaborn as sns
 
 def hsv2rgb(h,s=1.0,v=1.0):
     return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h,s,v))
+
+
+def flatten_list(l):
+    return [item for sublist in l for item in sublist]
+
 
 def imsave(img, filename):
   plt.imsave(filename, img, cmap=cm.gray)
@@ -346,3 +354,7 @@ def find_area_of_color(img, hsv_cde, radius, alpha = 0.5, dpi = 150, overlay = T
       imshow(cropped, dpi = dpi)
   if return_mask:
     return mask
+
+clear_output()
+print('OpenCV Version:',cv2.__version__)
+print('\nEnvironment ready, happy exploring!\n\n')
