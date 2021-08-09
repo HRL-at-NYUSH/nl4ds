@@ -226,7 +226,12 @@ def approximate_contours(contours = [], precision_level = 0.01, border_width = 2
     epsilon = precision_level*cv2.arcLength(hull,True)
     approx = cv2.approxPolyDP(cnt,epsilon,True)
     approx_contours.append(approx)
+
   approx_contours = [cnt for cnt in approx_contours if len(cnt)>2]
+
+  contour_count_change = len(contours) - len(approx_contours)
+  if contour_count_change>0:
+    print(str(contour_count_change) + 'contours are dropped because they have less than 3 edges.')
 
   if show:
     colored_img = grey_to_bgr(img)
@@ -296,3 +301,48 @@ def keep_segments_longer_than(cnt, min_segment_len):
   preserved_point_indices = flatten_list( cnt_info.loc[cnt_info['distance']>=min_segment_len,'point_index'].tolist() )
   preserved_cnt = cnt[preserved_point_indices]
   return preserved_cnt
+
+
+
+def rgb_code_to_hsv_code(rgb_tuple):
+  pixel = np.zeros((1,1,3),dtype=np.uint8)
+  pixel[0,0,:] = rgb_tuple
+  return tuple([int(v) for v in list(cv2.cvtColor(pixel, cv2.COLOR_RGB2HSV)[0][0])])
+
+def limit_within(value, vmin, vmax):
+  return max(min(value, vmax), vmin)
+
+def create_range_around(hsv_code, radius = (3,10,10)):
+  lower_bound, upper_bound = [], []
+  for i in range(len(hsv_code)):
+
+    lower_value = hsv_code[i]-radius[i]
+    upper_value = hsv_code[i]+radius[i]
+
+    if i == 0:
+      lower_value = lower_value % 180
+      upper_value = upper_value % 180
+    else:
+      lower_value = limit_within(lower_value, 0, 255)
+      upper_value = limit_within(upper_value, 0, 255)
+
+    lower_bound.append(lower_value)
+    upper_bound.append(upper_value)
+
+  return tuple(lower_bound), tuple(upper_bound)
+
+def find_area_of_color(img, hsv_cde, radius, alpha = 0.5, dpi = 150, overlay = True, show = True, return_mask = False):
+  img = img.copy()
+  lower_bound, upper_bound = create_range_around(hsv_code = hsv_cde, radius = radius)
+  img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+  mask = cv2.inRange(img_hsv, lower_bound, upper_bound )
+  cropped_hsv = cv2.bitwise_and(img_hsv, img_hsv, mask=mask)
+  cropped = cv2.cvtColor(cropped_hsv, cv2.COLOR_HSV2BGR)
+  if show:
+    if overlay:
+      overlayed = cv2.addWeighted(cropped, alpha, img, 1-alpha, 0.0)
+      imshow(overlayed, dpi = dpi)
+    else:
+      imshow(cropped, dpi = dpi)
+  if return_mask:
+    return mask
