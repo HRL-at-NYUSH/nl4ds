@@ -341,9 +341,17 @@ def create_range_around(hsv_code, radius = (3,10,10)):
 
 def find_area_of_color(img, hsv_cde, radius, alpha = 0.5, dpi = 150, overlay = True, show = True, return_mask = False):
   img = img.copy()
-  lower_bound, upper_bound = create_range_around(hsv_code = hsv_cde, radius = radius)
   img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-  mask = cv2.inRange(img_hsv, lower_bound, upper_bound )
+
+  lower_bound, upper_bound = create_range_around(hsv_code = hsv_cde, radius = radius)
+
+  if lower_bound[0]>upper_bound[0]: # for color hue like red that are on the edge of hue range
+    lower_mask = cv2.inRange(img_hsv, (0,lower_bound[1],lower_bound[2]), (lower_bound[0],upper_bound[1],upper_bound[2]))
+    upper_mask = cv2.inRange(img_hsv, (upper_bound[0],lower_bound[1],lower_bound[2]), (180,upper_bound[1],upper_bound[2]))
+    mask = cv2.bitwise_or(lower_mask, upper_mask)
+  else:  # for other color not on the edge
+    mask = cv2.inRange(img_hsv, lower_bound, upper_bound )
+
   cropped_hsv = cv2.bitwise_and(img_hsv, img_hsv, mask=mask)
   cropped = cv2.cvtColor(cropped_hsv, cv2.COLOR_HSV2BGR)
   if show:
