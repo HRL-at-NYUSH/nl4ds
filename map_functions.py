@@ -51,7 +51,7 @@ def imshow(img, width = 9, dpi = 90):
   else:
     plt.imshow(img)
 
-def save_graph(filename = '', dpi = 150, padding = 0.3, transparent = False, add_title = False):
+def save_graph(filename = '', dpi = 150, padding = 0.3, transparent = False, add_title = False, folder = None):
 
   orig_filename = filename
 
@@ -75,7 +75,10 @@ def save_graph(filename = '', dpi = 150, padding = 0.3, transparent = False, add
     if orig_filename!='':
       plt.suptitle(orig_filename)
 
-  plt.savefig('./saved_graphs/'+filename, dpi=dpi, bbox_inches='tight', transparent=transparent, pad_inches=padding)
+  if folder == None:
+    plt.savefig('./saved_graphs/'+filename, dpi=dpi, bbox_inches='tight', transparent=transparent, pad_inches=padding)
+  else:
+    plt.savefig(folder+filename, dpi=dpi, bbox_inches='tight', transparent=transparent, pad_inches=padding)
   print('Graph "'+filename+'" saved.')
 
 def param_search(img, func, param_1_range, param_2_range = None, param_layout = None):
