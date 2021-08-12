@@ -258,6 +258,11 @@ def get_movement_direction(x_diff, y_diff):
 def get_movement_distance(x_diff, y_diff):
   return np.linalg.norm((x_diff, y_diff))
 
+def angle_diff(sourceA,targetA):
+  a = targetA - sourceA
+  a = (a + 180) % 360 - 180
+  return a
+
 def get_contour_info_df(cnt):
   movements = np.diff(cnt,axis=0)
   directions = [get_movement_direction(*mov[0]) for mov in movements]
@@ -312,8 +317,6 @@ def keep_segments_longer_than(cnt, min_segment_len):
   preserved_point_indices = flatten_list( cnt_info.loc[cnt_info['distance']>=min_segment_len,'point_index'].tolist() )
   preserved_cnt = cnt[preserved_point_indices]
   return preserved_cnt
-
-
 
 def rgb_code_to_hsv_code(rgb_tuple):
   pixel = np.zeros((1,1,3),dtype=np.uint8)
