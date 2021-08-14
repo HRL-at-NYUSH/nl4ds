@@ -15,6 +15,8 @@ from collections import Counter
 import cv2
 from google.colab.patches import cv2_imshow
 
+from PIL import Image
+
 os.system('pip install rasterio')
 os.system('pip install iteround')
 
@@ -490,3 +492,13 @@ def analyze_color(input_image, transparency_threshold = 50, plot_3d = True, max_
   plt.xlabel('Number of Clusters')
   plt.ylabel('Average Distortion')
   print()
+
+def rgb_code_to_lab_code(rgb_tuple):
+  pixel = np.zeros((1,1,3),dtype=np.uint8)
+  pixel[0,0,:] = rgb_tuple if isinstance(rgb_tuple,tuple) else tuple(rgb_tuple)
+  return tuple([int(v) for v in list(cv2.cvtColor(pixel, cv2.COLOR_RGB2LAB)[0][0])])
+
+def lab_code_to_rgb_code(lab_tuple):
+  pixel = np.zeros((1,1,3),dtype=np.uint8)
+  pixel[0,0,:] = lab_tuple if isinstance(lab_tuple,tuple) else tuple(lab_tuple)
+  return tuple([int(v) for v in list(cv2.cvtColor(pixel, cv2.COLOR_LAB2RGB)[0][0])])
