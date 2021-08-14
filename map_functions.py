@@ -144,11 +144,14 @@ def grey_to_bgr(img):
 def grey_to_rgb(img):
   return cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 
-def find_contours(img, min_area_size = 1000, max_area_size = None, top_k = None, color_mode = 'rainbow', border_width = 2, show = True):
+def find_contours(img, min_area_size = 1000, max_area_size = None, top_k = None, color_mode = 'rainbow', border_width = 2, show = True, only_exterior = False):
 
   img = img.copy()
 
-  contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+  if only_exterior:
+    contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+  else:
+    contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
   contours = [cnt for cnt in contours if cv2.contourArea(cnt)>=min_area_size]
   if max_area_size != None:
@@ -244,7 +247,7 @@ def approximate_contours(contours = [], precision_level = 0.01, border_width = 2
 
   contour_count_change = len(contours) - len(approx_contours)
   if contour_count_change>0:
-    print(str(contour_count_change) + 'contours are dropped because they have less than 3 edges.')
+    print(str(contour_count_change) + ' contours are dropped because they have less than 3 edges.')
 
   if show:
     colored_img = grey_to_bgr(img)
