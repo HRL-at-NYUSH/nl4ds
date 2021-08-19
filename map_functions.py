@@ -286,7 +286,7 @@ def draw_one_contour(img, cnt, dpi=None, border_width=2):
   else:
     imshow(colored_img)
 
-def draw_many_contours(img, contours, dpi=None, border_width=2, n_colors = 8):
+def draw_many_contours(img, contours, dpi=None, border_width=2, n_colors = 8, font_scale = 1):
   
   color_range = range(1,n_colors*10+1,n_colors)
   colors = [hsv2rgb(num/100) for num in color_range]
@@ -305,7 +305,7 @@ def draw_many_contours(img, contours, dpi=None, border_width=2, n_colors = 8):
     
     text_content = str(i)
     font_family = cv2.FONT_HERSHEY_SIMPLEX
-    font_scale = 1
+    font_scale = font_scale
     color = color
     thickness = 2
     line_type = cv2.LINE_AA
