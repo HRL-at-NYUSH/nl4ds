@@ -278,20 +278,18 @@ def get_contour_info_df(cnt):
   cnt_info = cnt_info = cnt_info.drop('prev_direction',axis=1)
   return cnt_info
 
-def draw_one_contour(img, cnt, dpi=None, border_width=2):
-  colored_img = grey_to_bgr(img)
-  colored_img = cv2.drawContours(colored_img, [cnt], 0, (255,0,0), border_width)
-  if dpi != None:
-    imshow(colored_img, dpi = dpi)
-  else:
-    imshow(colored_img)
-
-def draw_many_contours(img, contours, dpi=None, border_width=2, n_colors = 8, font_scale = 1):
+def draw_many_contours(img, contours, dpi=None, border_width=2, n_colors = 8, font_scale = 1, is_bgr = True):
   
   color_range = range(1,n_colors*10+1,n_colors)
   colors = [hsv2rgb(num/100) for num in color_range]
 
-  colored_img = grey_to_bgr(img)
+  if len(img.shape)==2:
+    colored_img = grey_to_bgr(img)
+  elif len(img.shape)==3:
+    if is_bgr:
+      colored_img = img.copy()
+    else:
+      colored_img = rgb_to_bgr(img)
 
   for i in range(len(contours)):
     cnt = contours[i]
