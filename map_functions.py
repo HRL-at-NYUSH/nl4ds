@@ -507,3 +507,33 @@ def lab_code_to_rgb_code(lab_tuple):
   pixel = np.zeros((1,1,3),dtype=np.uint8)
   pixel[0,0,:] = lab_tuple if isinstance(lab_tuple,tuple) else tuple(lab_tuple)
   return tuple([int(v) for v in list(cv2.cvtColor(pixel, cv2.COLOR_LAB2RGB)[0][0])])
+
+
+def flood_fill(img, seed_pixel, return_mask = False, fill_value = (0,0,0)):
+
+  if isinstance( seed_pixel, list ):
+    seed_pixel_list = seed_pixel
+  else:
+    seed_pixel_list = [seed_pixel]
+
+  flood_img = img.copy()
+
+  black_pixels = np.where((flood_img[:, :, 0] == 0) & (flood_img[:, :, 1] == 0) & (flood_img[:, :, 2] == 0))
+  flood_img[black_pixels] = fill_value
+
+  h, w = flood_img.shape[:2]
+
+  mask_list = []
+  for seed_pixel in seed_pixel_list:
+    num, flood_img, mask, rect = cv2.floodFill(flood_img, np.zeros((h+2,w+2),np.uint8), seed_pixel, fill_value, (5, 5, 5), (5, 5, 5), 4)
+    mask_list.append(mask)
+
+  combined_mask = mask_list.pop(0)
+  while mask_list:
+    combined_mask = cv2.bitwise_or(combined_mask, mask_list.pop())
+  combined_mask = combined_mask[1:-1,1:-1]
+  combined_mask = combined_mask*255
+
+  if return_mask:
+    return flood_img, combined_mask
+  return flood_img
