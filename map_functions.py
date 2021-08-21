@@ -48,6 +48,7 @@ def imshow(img, width = 9, dpi = 90):
     
   w_h_ratio = get_w_h_ratio(img)
   plt.figure(figsize=(width,round(width*w_h_ratio,1)), dpi=dpi)
+  plt.grid(False)
   if len(img.shape)==2:
     plt.imshow(img, cmap='gray', vmin=0, vmax=255)
   else:
