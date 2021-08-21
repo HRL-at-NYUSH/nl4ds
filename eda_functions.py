@@ -172,11 +172,15 @@ def get_multiple_criteria(string, data):
   return combined_filter
 
 
-def select_data(criteria_string, data):
+def select(criteria_string, data):
   '''Provide a comma separated criteria_string, and specify which dataframe (df) to select from'''
   data = data.reset_index(drop=True).copy()
   criteria_filter = get_multiple_criteria(criteria_string, data)
   return data[criteria_filter].copy()
+
+def select_data(criteria_string, data):
+  '''Older name for the select fucntion, plan to retire the old name gradually, keeping this to support older codes'''
+  return select(criteria_string, data)
 
 # ----------------------------------- Value Selection Based on Keywords ------------------------------------
 
