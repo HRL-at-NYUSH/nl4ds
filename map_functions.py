@@ -400,7 +400,7 @@ def analyze_color(input_image, transparency_threshold = 50, plot_3d = True, max_
     color_df = pd.DataFrame(input_image.reshape(-1,3), columns=list('rgb'))
 
   if ignore_pure_black:
-    color_df = color_df[(color_df['r']==0)&(color_df['g']==0)&(color_df['b']==0)]
+    color_df = color_df[~((color_df['r']==0)&(color_df['g']==0)&(color_df['b']==0))]
 
   # Handle large pixel color_df
   if len(color_df)>1e5:
