@@ -382,7 +382,7 @@ from scipy.cluster.vq import whiten
 from scipy.cluster.vq import kmeans
 from scipy.cluster.vq import vq
 
-def analyze_color(input_image, transparency_threshold = 50, plot_3d = True, max_cluster = 10, ignore_pure_black = True):
+def analyze_color(input_image, transparency_threshold = 50, plot_3d = True, max_cluster = 10, ignore_pure_black = True, use_sample = True):
 
   # Copy to prevent modification (useful but mechanism needs clarification)
   input_image = input_image.copy()
@@ -403,7 +403,7 @@ def analyze_color(input_image, transparency_threshold = 50, plot_3d = True, max_
     color_df = color_df[~((color_df['r']==0)&(color_df['g']==0)&(color_df['b']==0))]
 
   # Handle large pixel color_df
-  if len(color_df)>1e5:
+  if not use_sample and len(color_df)>1e5:
       sample_or_not = (input('Large image detected, would you like to sample the pixels in this image? (Y/N) ')).lower()[0] == 'y'
       if sample_or_not:
         print('Sampled 100,000 pixels from the image, note that you can also resize the image before passing it to this function.')
