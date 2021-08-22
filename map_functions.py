@@ -511,9 +511,9 @@ def analyze_color(input_image, transparency_threshold = 50, plot_3d = False, plo
 
   if return_colors:
     if n_cluster != None:
-      return tuple((cluster_centers_list[0]*reverse_whiten_array).astype(np.uint8))
+      return (cluster_centers_list[0]*reverse_whiten_array).astype(np.uint8)
     else:
-      return [tuple((cluster_centers*reverse_whiten_array).astype(np.uint8)) for cluster_centers in cluster_centers_list]
+      return [(cluster_centers*reverse_whiten_array).astype(np.uint8) for cluster_centers in cluster_centers_list]
 
 def recover_contour_from_string(contour_string):
   list_of_points = [list(point.split(',')) for point in contour_string.split('|')]
@@ -580,3 +580,6 @@ def lab_code_to_rgb_code(lab_tuple):
   pixel = np.zeros((1,1,3),dtype=np.uint8)
   pixel[0,0,:] = lab_tuple if isinstance(lab_tuple,tuple) else tuple(lab_tuple)
   return tuple([int(v) for v in list(cv2.cvtColor(pixel, cv2.COLOR_LAB2RGB)[0][0])])
+
+def stringify_contour(contour):
+  return '|'.join([','.join(map(str,list(point[0]))) for point in contour])
