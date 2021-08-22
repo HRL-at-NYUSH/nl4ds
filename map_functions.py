@@ -509,9 +509,9 @@ def analyze_color(input_image, transparency_threshold = 50, plot_3d = False, plo
 
   if return_colors:
     if n_cluster != None:
-      return cluster_centers_list[0]*reverse_whiten_array
+      return (cluster_centers_list[0]*reverse_whiten_array).astype(np.uint8)
     else:
-      return [cluster_centers*reverse_whiten_array for cluster_centers in cluster_centers_list]
+      return [(cluster_centers*reverse_whiten_array).astype(np.uint8) for cluster_centers in cluster_centers_list]
 
 
 def rgb_code_to_lab_code(rgb_tuple):
