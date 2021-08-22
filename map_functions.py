@@ -1,8 +1,5 @@
 from IPython.display import clear_output
 
-import warnings
-warnings.filterwarnings('error')
-
 import pandas as pd
 import numpy as np
 
@@ -33,13 +30,15 @@ import colorsys
 import plotly.graph_objs as go
 import seaborn as sns
 
+
+import warnings
+warnings.filterwarnings('error')
+
 def hsv2rgb(h,s=1.0,v=1.0):
     return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h,s,v))
 
-
 def flatten_list(l):
     return [item for sublist in l for item in sublist]
-
 
 def imsave(img, filename):
   plt.imsave(filename, img, cmap=cm.gray)
