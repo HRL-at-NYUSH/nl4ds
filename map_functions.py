@@ -382,7 +382,7 @@ from scipy.cluster.vq import whiten
 from scipy.cluster.vq import kmeans
 from scipy.cluster.vq import vq
 
-def analyze_color(input_image, transparency_threshold = 50, plot_3d = True, max_cluster = 10, ignore_pure_black = True, use_sample = True):
+def analyze_color(input_image, transparency_threshold = 50, plot_3d = False, plot_bar = True, n_cluster = None, max_cluster = 10, ignore_pure_black = True, use_sample = True, return_colors = True):
 
   # Copy to prevent modification (useful but mechanism needs clarification)
   input_image = input_image.copy()
@@ -430,20 +430,24 @@ def analyze_color(input_image, transparency_threshold = 50, plot_3d = True, max_
     fig = go.Figure(data=[trace], layout=layout)
     fig.show()
 
-  ## K-means to identify main colors
-
+  ## Use K-means to identify main colors
   cluster_centers_list = []
   avg_distortion_list = []
 
-  n_cluster_range = range(max_cluster)
+  if n_cluster != None:
+    n_cluster_range = [n_cluster-1] # note minus 1 to get exactly n
+  else:
+    n_cluster_range = range(max_cluster+1)
 
-  f, ax = plt.subplots(max_cluster, 1, figsize=(10,10))
+  if plot_bar:
+    # Initialize plt graph
+    f, ax = plt.subplots(len(n_cluster_range), 1, figsize=(10,10))
 
-  for n_cluster in n_cluster_range:
+  for n in n_cluster_range:
 
     ###### Train clusters ######
 
-    cluster_centers, avg_distortion = kmeans(color_df[['scaled_r', 'scaled_g', 'scaled_b']], n_cluster + 1)
+    cluster_centers, avg_distortion = kmeans(color_df[['scaled_r', 'scaled_g', 'scaled_b']], n + 1)
 
     ###### Assign labels ######
 
@@ -470,33 +474,45 @@ def analyze_color(input_image, transparency_threshold = 50, plot_3d = True, max_
     cluster_centers = reordered_cluster_df['cluster'].tolist()
     cluster_width_list = reordered_cluster_df['width'].tolist()
 
-    # Coloring the palette canvas based on color and width
-    endpoints = list(np.cumsum(cluster_width_list))
-    startpoints = [0]+endpoints[:-1]
-    for cluster_index in range(len(cluster_centers)):
-      # Notice here we apply the reverse_whiten_array to get meaningful RGB colors
-      palette[:, startpoints[cluster_index]+gap_size:endpoints[cluster_index], :] = cluster_centers[cluster_index] * reverse_whiten_array
-      palette[:, startpoints[cluster_index]:startpoints[cluster_index]+gap_size, :] = (255,255,255)
-
-    # Displaying the palette when performing K-means with parameter n_cluster
-    ax[n_cluster].imshow(palette)
-    ax[n_cluster].axis('off')
-
     # Storing information
     cluster_centers_list.append(cluster_centers)
     avg_distortion_list.append(avg_distortion)
 
-  ### Show the entire palette
-  f.tight_layout()
-  plt.show()
+    if plot_bar:
+      # Coloring the palette canvas based on color and width
+      endpoints = list(np.cumsum(cluster_width_list))
+      startpoints = [0]+endpoints[:-1]
+      for cluster_index in range(len(cluster_centers)):
+        # Notice here we apply the reverse_whiten_array to get meaningful RGB colors
+        palette[:, startpoints[cluster_index]+gap_size:endpoints[cluster_index], :] = cluster_centers[cluster_index] * reverse_whiten_array
+        palette[:, startpoints[cluster_index]:startpoints[cluster_index]+gap_size, :] = (255,255,255)
 
-  ### Show the elbow plot for choosing best n_cluster parameter for K-means
-  fig = plt.figure()
-  plt.scatter(x = n_cluster_range, y = avg_distortion_list)
-  fig.suptitle('Elbow Plot for K-means')
-  plt.xlabel('Number of Clusters')
-  plt.ylabel('Average Distortion')
-  print()
+      # Displaying the palette when performing K-means with parameter n
+      if n_cluster != None:
+        ax.imshow(palette)
+        ax.axis('off')
+      else:
+        ax[n].imshow(palette)
+        ax[n].axis('off')
+
+  if plot_bar:
+    ### Show the entire palette
+    f.tight_layout()
+    plt.show()
+    ### Show the elbow plot for choosing best n_cluster parameter for K-means
+    fig = plt.figure()
+    plt.scatter(x = n_cluster_range, y = avg_distortion_list)
+    fig.suptitle('Elbow Plot for K-means')
+    plt.xlabel('Number of Clusters')
+    plt.ylabel('Average Distortion')
+    print()
+
+  if return_colors:
+    if n_cluster != None:
+      return cluster_centers_list[0]
+    else:
+      return cluster_centers_list
+
 
 def rgb_code_to_lab_code(rgb_tuple):
   pixel = np.zeros((1,1,3),dtype=np.uint8)
@@ -518,8 +534,9 @@ def flood_fill(img, seed_pixel, return_mask = False, fill_value = (0,0,0)):
 
   flood_img = img.copy()
 
-  black_pixels = np.where((flood_img[:, :, 0] == 0) & (flood_img[:, :, 1] == 0) & (flood_img[:, :, 2] == 0))
-  flood_img[black_pixels] = fill_value
+  if fill_value != (0,0,0):
+    black_pixels = np.where((flood_img[:, :, 0] == 0) & (flood_img[:, :, 1] == 0) & (flood_img[:, :, 2] == 0))
+    flood_img[black_pixels] = fill_value
 
   h, w = flood_img.shape[:2]
 
