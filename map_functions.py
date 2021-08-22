@@ -1,5 +1,8 @@
 from IPython.display import clear_output
 
+import warnings
+warnings.filterwarnings('error')
+
 import pandas as pd
 import numpy as np
 
@@ -509,9 +512,65 @@ def analyze_color(input_image, transparency_threshold = 50, plot_3d = False, plo
 
   if return_colors:
     if n_cluster != None:
-      return (cluster_centers_list[0]*reverse_whiten_array).astype(np.uint8)
+      return tuple((cluster_centers_list[0]*reverse_whiten_array).astype(np.uint8))
     else:
-      return [(cluster_centers*reverse_whiten_array).astype(np.uint8) for cluster_centers in cluster_centers_list]
+      return [tuple((cluster_centers*reverse_whiten_array).astype(np.uint8)) for cluster_centers in cluster_centers_list]
+
+def recover_contour_from_string(contour_string):
+  list_of_points = [list(point.split(',')) for point in contour_string.split('|')]
+  return np.array(list_of_points, dtype=np.int32)
+
+def flood_fill(img, seed_pixel, return_mask = False, fill_value = (0,0,0), color_variation = 5, neighbor = 4):
+
+  if isinstance( seed_pixel, list ):
+    seed_pixel_list = seed_pixel
+  else:
+    seed_pixel_list = [seed_pixel]
+
+  flood_img = img.copy()
+
+  if fill_value != (0,0,0):
+    black_pixels = np.where((flood_img[:, :, 0] == 0) & (flood_img[:, :, 1] == 0) & (flood_img[:, :, 2] == 0))
+    flood_img[black_pixels] = fill_value
+
+  h, w = flood_img.shape[:2]
+
+  mask_list = []
+  for seed_pixel in seed_pixel_list:
+    num, flood_img, mask, rect = cv2.floodFill(flood_img, np.zeros((h+2,w+2),np.uint8), seed_pixel, fill_value, tuple([color_variation]*3), tuple([color_variation]*3), neighbor)
+    mask_list.append(mask)
+
+  combined_mask = mask_list.pop(0)
+  while mask_list:
+    combined_mask = cv2.bitwise_or(combined_mask, mask_list.pop())
+  combined_mask = combined_mask[1:-1,1:-1]
+  combined_mask = combined_mask*255
+
+  if return_mask:
+    return flood_img, combined_mask
+  return flood_img
+
+def adaptive_threshold(img, size = 9, C = 18):
+  return cv2.adaptiveThreshold(img.copy(), 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, size, C)
+
+def mask_with_contours(img, contours):
+  img = img.copy()
+  mask_color = 255 if len(img.shape)==2 else (255,255,255) if len(img.shape)==3 else 255
+  contours_mask = cv2.drawContours(np.zeros(img.shape, dtype=np.uint8), contours, -1, mask_color, -1)
+  masked_img = cv2.bitwise_and(img, contours_mask)
+  return masked_img
+
+def get_vicinity(img,pixel_pos,radius): # pixel_pos in (x,y) format
+  x, y = pixel_pos
+  vicinity = img[y-radius:y+radius+1, x-radius:x+radius+1].copy()
+  return vicinity
+
+def random_sample_position_of_certain_value(ndarray, value, format = 'xy'):
+  yx = np.unravel_index( np.random.choice(np.where(ndarray.flatten() == value)[0]), ndarray.shape )
+  if format == 'xy':
+    return tuple(reversed(yx))
+  elif format == 'yx':
+    return yx
 
 
 def rgb_code_to_lab_code(rgb_tuple):
