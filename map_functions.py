@@ -30,7 +30,6 @@ import colorsys
 import plotly.graph_objs as go
 import seaborn as sns
 
-
 import warnings
 warnings.filterwarnings('error')
 
@@ -583,3 +582,14 @@ def lab_code_to_rgb_code(lab_tuple):
 
 def stringify_contour(contour):
   return '|'.join([','.join(map(str,list(point[0]))) for point in contour])
+
+
+def get_length_of_segments(cnt, order = 'original'):
+  cnt_with_head_at_tail = np.array(list(cnt)+list(cnt[:1]))
+  length_of_segments = list(np.round(np.sqrt(np.sum(np.square((cnt_with_head_at_tail[:-1] - cnt_with_head_at_tail[1:])), axis=2)).flatten(),1))
+  if order.startswith('orig'):
+    return length_of_segments
+  elif order.startswith('asc'):
+    return sorted(length_of_segments)
+  elif order.startswith('des'):
+    return sorted(reversed(length_of_segments))
