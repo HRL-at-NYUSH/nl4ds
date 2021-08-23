@@ -60,6 +60,9 @@ def parse_ms_ocr_result(ms_ocr_result, return_words=True, confidence_threshold=0
   result_unit = read_result['unit']
   result_lines = read_result['lines']
 
+  if len(result_lines) == 0: # if no lines found, return an empty components_df directly
+    return pd.DataFrame(columns=['bounding_box', 'text', 'confidence', 'frame_anchor'])
+
   lines_df = pd.DataFrame(result_lines)
 
   if return_words:
