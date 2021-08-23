@@ -38,7 +38,7 @@ def get_ms_ocr_result(read_image_path):
     read_result = computervision_client.get_read_result(operation_id)
     if read_result.status.lower() not in ['notstarted', 'running']:
       break
-    print('Waiting for result...')
+    # print('Waiting for result...')
     time.sleep(1)
   return read_result.as_dict()
 
