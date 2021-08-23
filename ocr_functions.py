@@ -26,7 +26,7 @@ clear_output()
 def flatten_list(l):
   return [item for sublist in l for item in sublist]
 
-def get_ms_ocr_result(read_image_path):
+def get_ms_ocr_result(read_image_path, wait_interval=10):
 
   # Open the image
   read_image = open(read_image_path, "rb")
@@ -43,7 +43,7 @@ def get_ms_ocr_result(read_image_path):
     if read_result.status.lower() not in ['notstarted', 'running']:
       break
     # print('Waiting for result...')
-    time.sleep(1)
+    time.sleep(wait_interval)
   return read_result.as_dict()
 
 def parse_ms_ocr_result(ms_ocr_result, return_words=True, confidence_threshold=0):
