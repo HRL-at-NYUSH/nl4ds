@@ -22,6 +22,10 @@ from msrest.authentication import CognitiveServicesCredentials
 computervision_client = ComputerVisionClient(input('\nEndpoint?\n'), CognitiveServicesCredentials(input('\nKey?\n')))
 clear_output()
 
+
+def flatten_list(l):
+  return [item for sublist in l for item in sublist]
+
 def get_ms_ocr_result(read_image_path):
 
   # Open the image
@@ -60,7 +64,7 @@ def parse_ms_ocr_result(ms_ocr_result, return_words=True, confidence_threshold=0
   result_unit = read_result['unit']
   result_lines = read_result['lines']
 
-  if len(result_lines) == 0: # if no lines found, return an empty components_df directly
+  if len(result_lines) == 0:  # if no lines found, return an empty components_df directly
     return pd.DataFrame(columns=['bounding_box', 'text', 'confidence', 'frame_anchor'])
 
   lines_df = pd.DataFrame(result_lines)
