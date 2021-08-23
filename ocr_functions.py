@@ -84,7 +84,7 @@ def mark_ms_ocr_result(image_file_path, components_df, fontsize=10, filename='')
 
   for bbox, ocr_text in polygons:
     vertices = [(bbox[i], bbox[i + 1]) for i in range(0, len(bbox), 2)]
-    patch = Polygon(vertices, closed=True, fill=False, linewidth=2, color='b')
+    patch = Polygon(vertices, closed=True, fill=False, linewidth=1, color='b')
     ax.axes.add_patch(patch)
     plt.text(vertices[1][0], vertices[1][1], ocr_text, fontsize=fontsize, color='r', va="top")
 
